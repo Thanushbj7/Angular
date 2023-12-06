@@ -25,6 +25,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.nio.file.*;
+import java.io.IOException;
+
  
  
 public class CopyTableExtract {
@@ -119,24 +122,26 @@ public class CopyTableExtract {
                                         SFDC_USERrunDate=extractDateFromLogFile(newFile);
                                        
                                         SFDC_USERstartDate = extractStartDate(newFile);
-                                        BufferedReader bufferReader=new BufferedReader(new FileReader(newFile));
+                                      try(  BufferedReader bufferReader=new BufferedReader(new FileReader(newFile))){
                                         // int recordCount=0;
                                         if(bufferReader !=null){
                                         while((line=bufferReader.readLine()) !=null){
                                             lastLine=line; }
                                         }
+                                      }
                                         SFDC_USERRECORD_COUNT =  extractNumberBeforeSuccessful(lastLine,keyword);
  
                                     }else if("SFDC_USER".equals(tableName) && SFDC_USER_COUNT ==1 ){
                                         SFDC_USER_COUNT ++;
                                         SFDC_USERENdDate=extractEndDate(newFile,sheet,rowNum);
                                         weeklyDaily = mapWeeklyDaily(newFile.getName());
-                                        BufferedReader bufferReader =new BufferedReader(new FileReader(newFile));
+                                       try( BufferedReader bufferReader =new BufferedReader(new FileReader(newFile))){
                                         // int recordCount=0;
                                         if(bufferReader !=null){
                                         while((line=bufferReader.readLine()) !=null){
                                             lastLine=line; }
                                         }
+                                       }
                                         SFDC_USERRECORD_COUNT = SFDC_USERRECORD_COUNT + extractNumberBeforeSuccessful(lastLine,keyword);
                                         table=mapTableName(newFile.getName());
                                         targetString1 = mapTargetString(table);
@@ -179,13 +184,14 @@ public class CopyTableExtract {
                                         Date startDate = extractStartDate(newFile);
                                         Date endDate=extractEndDate(newFile,sheet,rowNum);
                                         weeklyDaily = mapWeeklyDaily(newFile.getName());
-                                        BufferedReader bufferReader=new BufferedReader(new FileReader(newFile));
+                                       try( BufferedReader bufferReader=new BufferedReader(new FileReader(newFile))){
                                         // int recordCount=0;
                                         if(bufferReader !=null){
                                             while((line=bufferReader.readLine()) !=null){
                                                 lastLine=line;
                                             }
                                         }
+                                       }
                                         int recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
                                         table=mapTableName(newFile.getName());
                                         targetString1 = mapTargetString(table);
@@ -277,7 +283,9 @@ public class CopyTableExtract {
                 try (FileOutputStream fileOut = new FileOutputStream(excelFilePath)) {
                     workbook.write(fileOut);
                     System.out.println("Excel file created successfully at: " + excelFilePath);
-                    deleteFilesWithExtensions(folderPath, ".zip", ".log");
+                    
+deleteFilesInFolder(folderPath);
+                   // deleteFilesWithExtensions(folderPath, ".zip", ".log");
  
                 }
  
@@ -304,12 +312,13 @@ public class CopyTableExtract {
             byte[] bytes=new byte[(int) (length-position)];
             randomAccessFile.read(bytes);
             String lastLine=new String(bytes).trim();
-            BufferedReader bufferReader=new BufferedReader(new FileReader(logFile));
+            try(BufferedReader bufferReader=new BufferedReader(new FileReader(logFile))){
             String last,line;
             if(bufferReader!=null){
                 while((line=bufferReader.readLine()) !=null){
                     lastLine=line;
                 }
+            }
             }
             String keyword="successful";
             int recordCountCell=extractNumberBeforeSuccessful(lastLine,keyword);
@@ -561,14 +570,14 @@ public class CopyTableExtract {
             setRunCycle.setCellValue(runCycleCount);
         }
     }
-    private static void deleteFilesWithExtensions(String folderPath, String... extensions) {
+    /*private static void deleteFilesWithExtensions(String folderPath, String... extensions) {
         File folder = new File(folderPath);
 
         
         deleteFilesRecursive(folder, extensions);
     }
-
-    private static void deleteFilesRecursive(File folder, String... extensions) {
+*/
+    /*private static void deleteFilesRecursive(File folder, String... extensions) {
         File[] files = folder.listFiles();
 
         if (files != null) {
@@ -591,8 +600,21 @@ public class CopyTableExtract {
                 }
             }
         }
-    }
+    }*/
 
- 
+    private static void deleteFilesInFolder(String folderPath) throws IOException {
+        // Use java.nio.file to delete all files in the folder
+        Path folder = Paths.get(folderPath);
+
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folder)) {
+            for (Path path : directoryStream) {
+                Files.delete(path);
+            }
+            System.out.println("All files in the folder deleted successfully.");
+        } catch (IOException e) {
+            System.err.println("Error deleting files in the folder: " + e.getMessage());
+            throw e;
+        }
+    }
  
 }
