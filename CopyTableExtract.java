@@ -4,48 +4,54 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
+import java.util.Scanner;
+import java.util.Timer;
+ 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
+ 
 import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-
-public class Final {
-
-
-
-
-
-    public static void main(String[] args) {
+ 
+ 
+public class CopyTableExtract {
+ 
+ 
+	
+    public static void main(String[] args) throws ParseException {
         // Specify the folder containing the zip files
-        String folderPath = "C:\\Documents\\SFDC Retirement\\Copy Table Automation\\new";
+        String folderPath = "C:/Users/Windows/Downloads/New";
         // Specify the path for the Excel file
-        String excelFilePath = "C:\\Documents\\SFDC Retirement\\Copy Table Automation\\New folder\\file.xlsx";
-
+        String excelFilePath = "C:/Excel/SFDC_COPY_TABLE_COUNT.csv";
+ 
         // Call the method to unzip files, read logs, and create the Excel file
         unzipAndReadLogsAndCreateExcel(folderPath, excelFilePath);
+ 
+ 
     }
-
-    private static void unzipAndReadLogsAndCreateExcel(String folderPath, String excelFilePath) {
+ 
+    private static  void unzipAndReadLogsAndCreateExcel(String folderPath, String excelFilePath) throws ParseException {
         File folder = new File(folderPath);
         File[] zipFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
-
+ 
         if (zipFiles != null) {
             try (Workbook workbook = new XSSFWorkbook()) {
                 // Create a new sheet
                 Sheet sheet = workbook.createSheet("Sheet1");
-
+ 
                 // Create headers
                 Row headerRow = sheet.createRow(0);
                 String[] headers = {"RUN_DATE", "RUN_CYCLE", "TABLE_NAME", "WEEKLY_DAILY", "RECORD_COUNT", "START_DATE", "END_DATE"};
@@ -53,38 +59,38 @@ public class Final {
                     Cell cell = headerRow.createCell(i);
                     cell.setCellValue(headers[i]);
                 }
-//Map<String,Integer> zipFileNameCount;
-                int rowNum = 1; // Start writing data from the second row
-
+ 
+                int rowNum = 1;
+                boolean isUserSecond = false;
+                int SFDC_USER_COUNT =0;
+                int SFDC_USERRECORD_COUNT = 0;
+                Date SFDC_USERrunDate= null;
+                Date SFDC_USERstartDate = null;
+                Date SFDC_USERENdDate = null;
+                int runCycleCount  = 0;
+                int i=0;
+                int j=0;
                 for (File zipFile : zipFiles) {
-                    //zipFileNameCount=new HashMap<>();
+                    String zipFileName = zipFile.getName();
+                    String targetString = "";
+ 
                     try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
-                        //tring ZipFileName=ZipFile.getName();
-                        //if(!zNameCount.containsKey(zipFileName))
+ 
                         byte[] buffer = new byte[1024];
                         ZipEntry zipEntry = zis.getNextEntry();
-
-//String zipFileName=zipFile.getName();
-//if(zipFileName != null){
-//if(!zipFileNameCount.containsKey(zipFileName)){
-//zipFileNameCount.put(zipFileName,1);
-//}else{
-                        //int runCycleCount=zipFileNameCount.get(zipFileName);
-                        //zipFileNameCount.put(zipFileName,runCycleCount+1);
-//}
-//int runCycleCount=zipFileNameCount.get(zipFileName);
-
+ 
+ 
                         while (zipEntry != null) {
                             String entryName = zipEntry.getName();
                             File newFile = new File(folder, entryName);
-
+                           // System.out.println(entryName);
                             // Create directories if they do not exist
                             if (zipEntry.isDirectory()) {
                                 newFile.mkdirs();
                             } else {
                                 // Create parent directories for non-directory entries
                                 new File(newFile.getParent()).mkdirs();
-
+ 
                                 // Extract the file
                                 try (FileOutputStream fos = new FileOutputStream(newFile)) {
                                     int len;
@@ -92,56 +98,196 @@ public class Final {
                                         fos.write(buffer, 0, len);
                                     }
                                 }
-
+ 
                                 // Check if the entry is a log file and does not contain "Truncate" in its name
-                                if (entryName.toLowerCase().endsWith(".log") && !entryName.toLowerCase().contains("truncate") && !entryName.toLowerCase().contains("email_report") && !entryName.toLowerCase().contains("TaccountInfo") ) {
-                                    // Process the log file and extract date and time
-                                    Date runDate = extractDateFromLogFile(newFile);
-
-                                    // Map table name based on file name
+                                if (entryName.toLowerCase().endsWith(".log") && !entryName.toLowerCase().contains("truncate")&& !entryName.toLowerCase().contains("email_report") && !entryName.contains("TaccountInfo")) {
+ 
+                                   
+                                    String lastLine = null,line;
+                                    String keyword="successful";
+                                    String weeklyDaily=null;
+ 
                                     String tableName = mapTableName(newFile.getName());
+                                    String table=null;
+                                    String targetString1 = null;
+                                   
+                                   
+ 
+                                    if("SFDC_USER".equals(tableName) && SFDC_USER_COUNT ==0 ){
+                                        SFDC_USER_COUNT ++;
+                                       
+                                        SFDC_USERrunDate=extractDateFromLogFile(newFile);
+                                       
+                                        SFDC_USERstartDate = extractStartDate(newFile);
+                                        BufferedReader bufferReader=new BufferedReader(new FileReader(newFile));
+                                        // int recordCount=0;
+                                        if(bufferReader !=null){
+                                        while((line=bufferReader.readLine()) !=null){
+                                            lastLine=line; }
+                                        }
+                                        SFDC_USERRECORD_COUNT =  extractNumberBeforeSuccessful(lastLine,keyword);
+ 
+                                    }else if("SFDC_USER".equals(tableName) && SFDC_USER_COUNT ==1 ){
+                                        SFDC_USER_COUNT ++;
+                                        SFDC_USERENdDate=extractEndDate(newFile,sheet,rowNum);
+                                        weeklyDaily = mapWeeklyDaily(newFile.getName());
+                                        BufferedReader bufferReader =new BufferedReader(new FileReader(newFile));
+                                        // int recordCount=0;
+                                        if(bufferReader !=null){
+                                        while((line=bufferReader.readLine()) !=null){
+                                            lastLine=line; }
+                                        }
+                                        SFDC_USERRECORD_COUNT = SFDC_USERRECORD_COUNT + extractNumberBeforeSuccessful(lastLine,keyword);
+                                        table=mapTableName(newFile.getName());
+                                        targetString1 = mapTargetString(table);
+                                        Date runDate = extractDateFromLogFile(newFile);
+                                       Map<String, Integer> occurrences = countOccurrencesInZipFileNames(folderPath, targetString1);
+                                       SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+                                       String runTimeStr = timeFormat.format(runDate);
+//                                      
+                                      
+                                       if(entryName.contains("sfdcRegistrationMapExtractProcess")) {
+                                    	   
+                                          	try {
+   												runCycleCount++;
+   												if(runCycleCount==4) {
+   												runCycleCount=0;
+   												}
+   												
+   											}
+                                          	catch (Exception e) {
+   							
+   												e.printStackTrace();
+   											}
+                                          	}else if(!zipFileName.contains("Copy_Tables_extract_log_files") && !zipFileName.contains("trade_review_extract_log_files")) {
+												runCycleCount=1;
+											}
+                                          	else if(entryName.contains("sfdcClientDisclosureExtractProcess")) {
+												
+												i++;
+												runCycleCount=i;
+												//System.out.println(i);
+												
+                                         	  
+                                            }
+                                          	
+                                        addLogDataToExcel(sheet, rowNum++, SFDC_USERrunDate, tableName, SFDC_USERstartDate,SFDC_USERENdDate,weeklyDaily,SFDC_USERRECORD_COUNT,runCycleCount);
+ 
+                                    }else{
+                                        Date runDate = extractDateFromLogFile(newFile);
+                                     // Extract start date from the line containing "Decrypting..."
+                                        Date startDate = extractStartDate(newFile);
+                                        Date endDate=extractEndDate(newFile,sheet,rowNum);
+                                        weeklyDaily = mapWeeklyDaily(newFile.getName());
+                                        BufferedReader bufferReader=new BufferedReader(new FileReader(newFile));
+                                        // int recordCount=0;
+                                        if(bufferReader !=null){
+                                            while((line=bufferReader.readLine()) !=null){
+                                                lastLine=line;
+                                            }
+                                        }
+                                        int recordCount=extractNumberBeforeSuccessful(lastLine,keyword);
+                                        table=mapTableName(newFile.getName());
+                                        targetString1 = mapTargetString(table);
+										
+                                        if(entryName.contains("sfdcRegistrationMapExtractProcess")) {
+                                            
+                                           	try {
+                                           		if(runCycleCount==0) {
+                                           			runCycleCount=3;
+                                           		}else {
+                                           			if(runCycleCount==3) {
+                                           				runCycleCount=0;
+                                           			}
+                                           			runCycleCount++;
+                                           			if(runCycleCount==4) {
+        												runCycleCount=0;
+        												}
+                                           		}
+    												
+    												
+    												
+    											}
+                                           	catch (Exception e) {
+    							
+    												e.printStackTrace();
+    											}
+                                        }
+                                           	else if(zipFileName.contains("EblotterExtract__log_files")) {
+                                           		j=1;
+                                           		runCycleCount=1;
+                                           	}
+                                           	
+                                           	else if(!zipFileName.contains("Copy_Tables_extract_log_files") && !zipFileName.contains("trade_review_extract_log_files")) {
+                                           		 if(zipFileName.contains("sfdcEBlotter") && j==1) {
+                                               		
+                                           			runCycleCount=2;
+                                           		
+                                           	}else {
+ 												runCycleCount=1;
+                                           	}
+ 											}
+                                           	
+                                           	else if(entryName.contains("sfdcClientDisclosureExtractProcess")) {
+												if(i==0) {
+													i=3;
+												}else {
+													if(i==3) {
+														i=0;
+													}
+													i++;
+												}
+												
+												runCycleCount=i;
+												//System.out.println(i);
+												
+                                         	  
+                                            }
+                                   
+                                        		
+                                     
+                                        
+                                        
 
-                                    // Extract start date from the line containing "Decrypting..."
-                                    Date startDate = extractStartDate(newFile);
-                                    Date endDate=extractEndDate(newFile,sheet,rowNum);
-                                    String weeklyDaily = mapWeeklyDaily(newFile.getName());
-                                    // Row row=sheet.getRow(rowNum);
-                                    //if(runCycleCount != 0){
-                                    // Cell runCycleCell=row.createCell(1);
-                                    // if(runCycleCell != null){
-                                    // runCycleCell.setCellValue(runCycleCount);
-                                    //  }
-                                    // }
-                                    // Add log data to Excel file
-                                    addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily);
+ 
+                                        Map<String, Integer> occurrences = countOccurrencesInZipFileNames(folderPath, targetString1);
+                                        //addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,occurrences.getOrDefault(targetString1, 0));
+                                        addLogDataToExcel(sheet, rowNum++, runDate, tableName, startDate,endDate,weeklyDaily,recordCount,runCycleCount);
+                                    }
+                                   
+                                   
+                                    
+                                   
                                 }
                             }
-                            //  }
-
-                            // Move to the next entry
+                            
                             zipEntry = zis.getNextEntry();
                         }
-
+ 
                         System.out.println("Unzipped and processed logs: " + zipFile.getName());
-
+ 
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 }
-
+                //}
+ 
+ 
                 // Write the workbook to a file
                 try (FileOutputStream fileOut = new FileOutputStream(excelFilePath)) {
                     workbook.write(fileOut);
                     System.out.println("Excel file created successfully at: " + excelFilePath);
+                    deleteFilesWithExtensions(folderPath, ".zip", ".log");
+ 
                 }
-
+ 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
             System.out.println("No zip files found in the specified folder.");
         }
+ 
     }
     private static Date extractEndDate(File logFile,Sheet sheet,int rowNum){
         try(RandomAccessFile randomAccessFile=new RandomAccessFile(logFile,"r")){
@@ -150,38 +296,31 @@ public class Final {
                 return null;
             }
             long position=length-1;
-            System.out.println("POS" +position);
             randomAccessFile.seek(position);
             while(position > 0 && randomAccessFile.readByte() !='\n'){
                 position--;
-
                 randomAccessFile.seek(position);
-                System.out.println(randomAccessFile);
             }
             byte[] bytes=new byte[(int) (length-position)];
             randomAccessFile.read(bytes);
             String lastLine=new String(bytes).trim();
-            BufferedReader input = new BufferedReader(new FileReader(logFile));
-            String last, line;
-            if(input!=null) {
-                while ((line = input.readLine()) != null) {
-                    lastLine = line;
+            BufferedReader bufferReader=new BufferedReader(new FileReader(logFile));
+            String last,line;
+            if(bufferReader!=null){
+                while((line=bufferReader.readLine()) !=null){
+                    lastLine=line;
                 }
             }
-            System.out.println("LAST" +lastLine);
-
-
+            String keyword="successful";
+            int recordCountCell=extractNumberBeforeSuccessful(lastLine,keyword);
+ 
+ 
             if(!lastLine.isEmpty()){
                 SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 try{
                     Date endDate=dateFormat.parse(lastLine);
-                    System.out.println("EndDATE"+endDate);
-                    //int recordCount=extractRecordCount(lastLine);
-                    Row row=sheet.getRow(rowNum);
-                   // Cell endDateCell=row.createCell(6);
-                    //endDateCell.setCellValue(endDate);
-                    //Cell recordCountCell=row.createCell(4);
-                    //recordCountCell.setCellValue(recordCount);
+ 
+ 
                     return endDate;
                 }catch(ParseException e){
                     System.out.println("Error parsing end date from log file:"+logFile.getName());
@@ -192,8 +331,79 @@ public class Final {
             e.printStackTrace();
         }
         return null;
-
+ 
     }
+    private static int extractNumberBeforeSuccessful(String lastLine, String keyword){
+        String regex="(\\d+)\\s*successful";
+        Pattern pattern=Pattern.compile(regex);
+        Matcher matcher=pattern.matcher(lastLine);
+        if(matcher.find()){
+            String numberStr=matcher.group(1);
+            try{
+                return Integer.parseInt(numberStr);
+ 
+            }catch(NumberFormatException e){
+                System.err.println("Error parsing number:"+numberStr);
+                e.printStackTrace();
+            }
+        }
+        return 0;
+    }
+    private static String mapTargetString(String table) {
+        // Map the target string based on the provided conditions
+        String targetString = "";
+ 
+        if (table.equals("SFDC_W_TR_REGISTRATION_MAP") ||
+                table.equals("SBR_W_REG_LETTER_LOG_REL_SFDC") ||
+                table.equals("SFDC_W_SPONSOR_NAMES")) {
+            targetString = "Copy_Tables_extract_log_files";
+        } else if (table.equals("SFDC_W_CLIENT") ||
+                table.equals("SFDC_W_REGISTRATION") ||
+                table.equals("SFDC_W_REGISTRATION_MEMBERS") ||
+                table.equals("SFDC_W_BENEFICIARY") ||
+                table.equals("SFDC_W_CLIENT_DISCLOSURE") ||
+                table.equals("SFDC_W_PORTFOLIO_REVIEW")) {
+            targetString = "trade_review_extract_log_files";
+        } else if (table.equals("SFDC_EBLOTTER")) {
+            targetString = "EblotterExtract__log_files";
+        } else if (table.equals("SBR_ACCOUNT_HISTORY_SFDC") ||
+                table.equals("SBR_REG_MEMBER_HISTORY_SFDC") ||
+                table.equals("SBR_REGISTRATION_HISTORY_SFDC") ||
+                table.equals("SBR_REG_LETTER_LOG_SFDC") ||
+                table.equals("SBR_REG_LETTER_LOG_T2_SFDC")) {
+            targetString = "SFDC_History";
+        } else if (table.equals("SFDC_CHECKS") || table.equals("SFDC_TRADES")) {
+            targetString = "sfdcEBlotter";
+        }else if(table.equals("SFDC_USER")){
+            targetString="sfdc_emailload_log";
+        }else if(table.equals("SFDC_W_FINANCIAL_ACCOUNT") || table.equals("SFDC_W_FINANCIAL_ACCOUNT_TEAM")){
+            targetString="FA and FA Team Job";
+        }
+ 
+        return targetString;
+    }
+    private static Map<String, Integer> countOccurrencesInZipFileNames(String folderPath, String targetString) {
+        File folder = new File(folderPath);
+        File[] zipFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".zip"));
+ 
+        Map<String, Integer> occurrences = new HashMap<>();
+        int count = 0;
+ 
+        if (zipFiles != null) {
+            for (File zipFile : zipFiles) {
+                String zipFileName = zipFile.getName();
+ 
+                if (zipFileName.contains(targetString)) {
+                    count++;
+                }
+            }
+        }
+ 
+        occurrences.put(targetString, count);
+        return occurrences;
+    }
+ 
+ 
     private static int extractRecordCount(String lastLine){
         String[] parts=lastLine.split("\\D+");
         if(parts.length>0){
@@ -220,8 +430,10 @@ public class Final {
             String firstLine = reader.readLine();
             if (firstLine != null) {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+               
                 try {
                     return dateFormat.parse(firstLine);
+                    //System.out.println(dateFormat.parse(firstLine));
                 } catch (ParseException e) {
                     System.out.println("Error parsing date from log file: " + logFile.getName());
                     e.printStackTrace();
@@ -239,10 +451,7 @@ public class Final {
             boolean decryptingFound=false;
             while ((line = reader.readLine()) != null) {
                 if (decryptingFound) {
-                    //if(line.length()>=32){
-                    //String dateString=line.substring(0, 13).trim();
-                    //}
-                    // Extract date and time from the line
+ 
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // Adjust the format based on your log
                     try {
                         // Assuming the date and time start at index 13 and end at index 32
@@ -314,45 +523,76 @@ public class Final {
         }else if (fileName.contains("sfdcFinancialAccountTeamExtractProcess")) {
             return "SFDC_W_FINANCIAL_ACCOUNT_TEAM";
         }
-        // Add more conditions if needed for other file names
-        // Example: if (fileName.contains("someOtherPattern")) return "SomeOtherTable";
-
-        // Default to an empty string if no mapping is found
+ 
         return "";
     }
-
-    private static void addLogDataToExcel(Sheet sheet, int rowNum, Date runDate, String tableName,Date startDate,Date endDate,String weeklyDaily) {
+ 
+    private static void addLogDataToExcel(Sheet sheet, int rowNum, Date runDate, String tableName,Date startDate,Date endDate,String weeklyDaily,int recordCount,int runCycleCount) throws ParseException {
         Row row = sheet.createRow(rowNum);
-
+ 
         // Add the extracted run date to the RUN_DATE column
         Cell cellRunDate = row.createCell(0);
         if (runDate != null) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            cellRunDate.setCellValue(dateFormat.format(runDate));
-
+            SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            cellRunDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(runDate))));
         }
-        // Row row=sheet.getRow(rowNum);
-        // Cell cellLastLine=row.createCell(4);
-        // if(recordCount!=null){
-        // cellLatLine.setCellValue(recordCount);
-        // }
-
-
-        // Add the mapped table name to the TABLE_NAME column
+    
         Cell cellTableName = row.createCell(2);
         cellTableName.setCellValue(tableName);
         Cell cellStartDate=row.createCell(5);
         Cell cellWeeklyDaily=row.createCell(3);
+        Cell setRecordCount=row.createCell(4);
+        Cell setRunCycle=row.createCell(1);
         cellWeeklyDaily.setCellValue(weeklyDaily);
-        if(startDate!=null){
-            SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            cellStartDate.setCellValue(dateFormat.format(startDate));
+        if (startDate != null) {
+            SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            cellStartDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(startDate))));
         }
         Cell cellEndDate=row.createCell(6);
-        if(endDate!=null){
-            SimpleDateFormat dateFormate=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            cellEndDate.setCellValue(dateFormate.format(endDate));
+        if (endDate != null) {
+            SimpleDateFormat logDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat excelDateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            cellEndDate.setCellValue(excelDateFormat.format(logDateFormat.parse(logDateFormat.format(endDate))));
+        }
+        setRecordCount.setCellValue(recordCount);
+        if (setRunCycle != null) {
+            setRunCycle.setCellValue(runCycleCount);
         }
     }
+    private static void deleteFilesWithExtensions(String folderPath, String... extensions) {
+        File folder = new File(folderPath);
+
+        
+        deleteFilesRecursive(folder, extensions);
+    }
+
+    private static void deleteFilesRecursive(File folder, String... extensions) {
+        File[] files = folder.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    
+                    deleteFilesRecursive(file, extensions);
+                } else {
+                    
+                    for (String extension : extensions) {
+                        if (file.getName().toLowerCase().endsWith(extension)) {
+                            if (file.delete()) {
+                                System.out.println("Deleted file: " + file.getAbsolutePath());
+                            } else {
+                                System.out.println("Failed to delete file: " + file.getAbsolutePath());
+                            }
+                            break;  
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+ 
+ 
 }
