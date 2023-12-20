@@ -273,8 +273,15 @@ public class CopyTableExtract {
         }
     }
     private static String cellToString(Cell cell) {
-        if (cell.getCellType() == CellType.NUMERIC) {
-            return String.valueOf(cell.getNumericCellValue());
+    	if (cell.getCellType() == CellType.NUMERIC) {
+           
+            if (cell.getNumericCellValue() == Math.floor(cell.getNumericCellValue())) {
+               
+                return String.valueOf((int) cell.getNumericCellValue());
+            } else {
+              
+                return String.valueOf(cell.getNumericCellValue());
+            }
         } else if (cell.getCellType() == CellType.STRING) {
             return cell.getStringCellValue();
         } else if (cell.getCellType() == CellType.BOOLEAN) {
