@@ -613,3 +613,27 @@ public class CopyTableExtract {
     }
  
 }
+
+
+
+
+
+
+<!-- CaseHistory.cmp -->
+<aura:component>
+    <div class="slds-card">
+        <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__body">
+                    <h1 class="slds-text-heading_large">
+                        Case History
+                    </h1>
+                </div>
+            </header>
+        </div>
+        <div class="slds-card__body">
+            <!-- Your custom component content goes here -->
+            <p>This is where your case history details will be displayed.</p>
+        </div>
+    </div>
+</aura:component>
