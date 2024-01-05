@@ -632,8 +632,25 @@ public class CopyTableExtract {
             </header>
         </div>
         <div class="slds-card__body">
-            <!-- Your custom component content goes here -->
-            <p>This is where your case history details will be displayed.</p>
+            <!-- Table with headers -->
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                <thead>
+                    <tr>
+                        <th scope="col"><div class="slds-truncate">Case Number</div></th>
+                        <th scope="col"><div class="slds-truncate">Date</div></th>
+                        <th scope="col"><div class="slds-truncate">Pan ID</div></th>
+                    </tr>
+                </thead>
+                <!-- Add your table rows with data here -->
+                <tbody>
+                    <tr>
+                        <td data-label="Case Number">123456</td>
+                        <td data-label="Date">2024-01-05</td>
+                        <td data-label="Pan ID">ABC123</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
         </div>
     </div>
 </aura:component>
