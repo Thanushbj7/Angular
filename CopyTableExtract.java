@@ -619,8 +619,9 @@ public class CopyTableExtract {
 
 
 
-<!-- CaseHistory.cmp -->
-<aura:component>
+<aura:component controller="CaseHistoryController">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
     <div class="slds-card">
         <div class="slds-card__header slds-grid">
             <header class="slds-media slds-media_center slds-has-flexi-truncate">
@@ -641,16 +642,52 @@ public class CopyTableExtract {
                         <th scope="col"><div class="slds-truncate">Pan ID</div></th>
                     </tr>
                 </thead>
-                <!-- Add your table rows with data here -->
+                <!-- Display dynamic data from Case object -->
                 <tbody>
-                    <tr>
-                        <td data-label="Case Number">123456</td>
-                        <td data-label="Date">2024-01-05</td>
-                        <td data-label="Pan ID">ABC123</td>
-                    </tr>
-                    <!-- Add more rows as needed -->
+                    <aura:iteration items="{!v.caseRecords}" var="caseRecord">
+                        <tr>
+                            <td data-label="Case Number">{!caseRecord.CaseNumber}</td>
+                            <td data-label="Date">{!caseRecord.CreatedDate}</td>
+                            <td data-label="Pan ID">{!caseRecord.Pan_ID__c}</td>
+                        </tr>
+                    </aura:iteration>
                 </tbody>
             </table>
         </div>
     </div>
 </aura:component>
+
+
+
+
+
+
+ // CaseHistoryController.apxc
+public with sharing class CaseHistoryController {
+    @AuraEnabled(cacheable=true)
+    public static List<Case> getCaseRecords() {
+        // Adjust the query based on your requirements
+        return [SELECT Id, CaseNumber, CreatedDate, Pan_ID__c FROM Case LIMIT 10];
+    }
+}
+
+
+
+
+// CaseHistoryController.js
+({
+    doInit : function(component, event, helper) {
+        var action = component.get("c.getCaseRecords");
+
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") {
+                component.set("v.caseRecords", response.getReturnValue());
+            } else {
+                console.error("Error fetching Case records");
+            }
+        });
+
+        $A.enqueueAction(action);
+    }
+})
