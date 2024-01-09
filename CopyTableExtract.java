@@ -1,4 +1,45 @@
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
+public class ConsoleOutputToFile {
+    public static void main(String[] args) {
+        // Specify the file path where you want to save the console output
+        String filePath = "output.txt";
+
+        try {
+            // Create a file output stream
+            FileOutputStream fileOutputStream = new FileOutputStream(new File(filePath));
+
+            // Create a print stream that writes to the file
+            PrintStream printStream = new PrintStream(fileOutputStream);
+
+            // Redirect the standard output to the print stream
+            System.setOut(printStream);
+
+            // Your code that produces console output
+            System.out.println("This will be written to the file.");
+
+            // Flush and close the streams
+            printStream.flush();
+            printStream.close();
+            fileOutputStream.close();
+
+            System.out.println("Console output saved to " + filePath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
