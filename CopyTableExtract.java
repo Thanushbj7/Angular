@@ -80,3 +80,8 @@ class DataExporter
         </tbody>
     </table>
 </aura:component>
+
+
+
+    SELECT Case__r.CaseNumber,Date_Time_c__c,PlanID_Text__c,Call_Activity__c,Call_Type__c FROM Case_Actions__c where Call_Type__c IN ('Other') AND Call_Activity__c IN('Inquiry','Transactions','Account Maintenance','Forms')   and Case__r.Account.SSN__c in  ('010820241')];
+            
