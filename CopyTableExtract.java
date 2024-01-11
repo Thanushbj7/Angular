@@ -51,3 +51,32 @@ class DataExporter
         }
     }
 }
+
+
+
+
+
+
+<!-- MyObjectComponent.cmp -->
+<aura:component controller="MyObjectController">
+    <aura:attribute name="picklistValues" type="List" />
+
+    <!-- Initialization -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!-- Table Section -->
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #ddd; padding: 8px;">Picklist Values</th>
+            </tr>
+        </thead>
+        <tbody>
+            <aura:iteration items="{!v.picklistValues}" var="value">
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{!value}</td>
+                </tr>
+            </aura:iteration>
+        </tbody>
+    </table>
+</aura:component>
