@@ -84,6 +84,32 @@ class DataExporter
 
 
 
+
+
+
+    <aura:component>
+<lightning;card title="Header Text" iconName="standard:add_contact" footer="Footer Text">
+<aura:set attribute="actions">
+<lightning:button label="New"/Þ
+<auraiset>
+<p class= "slds-p-horizontal_small">
+Body Text
+<p>
+<lightning:card>
+<aura:component>
+<aura:component>
+<lightning:card title="Header Text" iconName="standard:add_contact" footer="Footer Text">
+<aura:set attribute="actions">
+<lightning:button label="New"/>
+<aura:set>
+class="slds-p-horizontal_small">
+Body Text
+chps
+<lightningcard>
+</aura:component
+
+
+
     {!v.excludedCallActivities.includes(action.Call_Activity__c) ? action.Call_Activity__c : ''}
 
     SELECT Case__r.CaseNumber,Date_Time_c__c,PlanID_Text__c,Call_Activity__c,Call_Type__c FROM Case_Actions__c where Call_Type__c IN ('Other') AND Call_Activity__c IN('Inquiry','Transactions','Account Maintenance','Forms')   and Case__r.Account.SSN__c in  ('010820241')];
