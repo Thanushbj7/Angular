@@ -178,3 +178,62 @@ For this code put a condition that casenumber should not repeat
     },
     
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+({
+    getCases: function(component, event, helper) {
+        var action = component.get("c.getObject");
+
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+
+            if (component.isValid() && state === "SUCCESS") {
+                var cases = response.getReturnValue();
+                component.set("v.cases", cases);
+                helper.handleUniqueCases(component, event, helper); // Add this line
+            }
+        });
+
+        $A.enqueueAction(action);
+    },
+
+    navigateToRecordDetails: function(component, event, helper) {
+        var navEvt = $A.get("e.force:navigateToSObject");
+        navEvt.setParams({
+            "recordId": component.get("v.recordId")
+        });
+        navEvt.fire();
+    },
+
+    handleUniqueCases: function(component, event, helper) {
+        var uniqueCaseNumbers = new Set();
+        var cases = component.get("v.cases");
+        var uniqueCases = [];
+
+        cases.forEach(function(caseRecord) {
+            var caseNumber = caseRecord.Case__r.CaseNumber;
+            if (!uniqueCaseNumbers.has(caseNumber)) {
+                uniqueCaseNumbers.add(caseNumber);
+                uniqueCases.push(caseRecord);
+            }
+        });
+
+        component.set("v.cases", uniqueCases);
+    }
+})
