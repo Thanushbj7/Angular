@@ -110,3 +110,16 @@ For this code put a condition that casenumber should not repeat
         component.set("v.cases", cases);
     }
 })
+
+
+({
+    check : function(component, event, helper){
+        console.log('inside controller');
+        helper.getCases(component,event,helper);
+    }
+    ,
+    
+    handleClick : function(component,event,helper){
+        helper.navigateTorecordDetails(component,event);
+    }
+})
