@@ -112,3 +112,36 @@ For this code put a condition that casenumber should not repeat
 })
 
 
+
+
+
+
+
+
+({
+    check: function(component, event, helper) {
+        console.log('inside controller');
+        helper.getCases(component, event, helper);
+
+        // Initialize a set to store unique case numbers
+        var uniqueCaseNumbers = new Set();
+
+        // Iterate through the cases and add only unique case numbers
+        var cases = component.get("v.cases");
+        cases.forEach(function(caseRecord) {
+            var caseNumber = caseRecord.Case__r.CaseNumber;
+            if (!uniqueCaseNumbers.has(caseNumber)) {
+                uniqueCaseNumbers.add(caseNumber);
+            } else {
+                // Case number already exists, handle accordingly (you can skip, alert, or take another action)
+            }
+        });
+
+        // Update the component attribute with the unique cases
+        component.set("v.cases", cases);
+    },
+
+    handleClick: function(component, event, helper) {
+        helper.navigateTorecordDetails(component, event);
+    }
+})
