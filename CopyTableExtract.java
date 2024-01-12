@@ -108,7 +108,10 @@ chps
 <lightningcard>
 </aura:component
 
-
+aura:if isTrue="{!v.caseActions.Call_Activity__c.includes('Inquiry')}">
+                            Inquiry
+                        </aura:if>
+                    </td>
 
     {!v.excludedCallActivities.includes(action.Call_Activity__c) ? action.Call_Activity__c : ''}
 
