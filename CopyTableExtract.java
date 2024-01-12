@@ -11,6 +11,7 @@ I am getting the Case Id and displaying all the casesaction related to that obje
     <aura:handler name="init" value="{!this}" action="{!c.check}" />
    <!-- <aura:attribute name="Cases" type="list"/>-->
     <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="Casenumber" type="String" />
     <!--   <aura:handler event="c:CaseRelatedListEvent" action="{!c.handleCSDetailsEvent}" />-->
      <lightning:card title="CASE HISTORY" iconName="standard:add_contact">
     <div class="slds-col slds-col--padded slds-p-top--large">
@@ -34,16 +35,35 @@ I am getting the Case Id and displaying all the casesaction related to that obje
         </thead>
         <tbody>
             <aura:iteration items="{!v.cases}" var="caseRecord">
+                
+				 <!--<aura:if isTrue="{!caseRecord.Case__r.CaseNumber==Casenumber}">-->
                 <tr>
                     <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.Case__r.CaseNumber}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.Date_Time_c__c}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.Case__r.CreatedDate}</td>
                     <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.PlanID_Text__c}</td>
                     <td style="border: 1px solid #ddd; padding: 8px;">
-                         <aura:if isTrue="{!caseRecord.Call_Activity__c.includes('Inquiry')}">
+                        <aura:if isTrue="{!caseRecord.Call_Activity__c=='Inquiry'}">
                             Inquiry
                         </aura:if>
+                        
                     </td>
-                    
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <aura:if isTrue="{!caseRecord.Call_Activity__c=='Transactions'}">
+                            Transactions
+                        </aura:if>
+                        
+                    </td>
+                     <td style="border: 1px solid #ddd; padding: 8px;">
+                        <aura:if isTrue="{!caseRecord.Call_Activity__c=='Account Maintenance'}">
+                            Account Maintenance
+                        </aura:if>
+                </td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <aura:if isTrue="{!caseRecord.Call_Activity__c=='Forms'}">
+                            Forms
+                        </aura:if>
+                </td>
+                    <!--assign case number-->
                 </tr>
             </aura:iteration>
         </tbody>
