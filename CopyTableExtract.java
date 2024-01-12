@@ -145,3 +145,36 @@ For this code put a condition that casenumber should not repeat
         helper.navigateTorecordDetails(component, event);
     }
 })
+
+
+
+
+
+
+({
+    getCases : function(Component,event,helper) {
+        var action= Component.get("c.getObject");
+       //var sessId = Component.get("v.sessId");
+       // action.setParams({
+        //    "sessId" :sessId
+            
+       // });
+        action.setCallback(this, function(response){
+            var state=response.getState();
+                       
+            if (Component.isValid() && state === "SUCCESS") {               
+                alert(response.getReturnValue());
+                Component.set("v.cases",response.getReturnValue());
+            }
+        });
+        $A.enqueueAction(action);
+    },
+    navigateTorecordDetails :function(Component,event,helper){
+        var navEvt = $A.get("e.force:navigateToSObject");
+        navEvt.setParams({
+            "recordId": Component.get("v.recordId")
+        });
+        navEvt.fire();
+    },
+    
+})
