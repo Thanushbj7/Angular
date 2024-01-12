@@ -117,3 +117,48 @@ aura:if isTrue="{!v.caseActions.Call_Activity__c.includes('Inquiry')}">
 
     SELECT Case__r.CaseNumber,Date_Time_c__c,PlanID_Text__c,Call_Activity__c,Call_Type__c FROM Case_Actions__c where Call_Type__c IN ('Other') AND Call_Activity__c IN('Inquiry','Transactions','Account Maintenance','Forms')   and Case__r.Account.SSN__c in  ('010820241')];
             
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="border: 1px solid #ddd; padding: 8px;">Case Number</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Date Time</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Plan ID</th>
+                <th style="border: 1px solid #ddd; padding: 8px;">Inquiry</th>
+                <!-- Add other columns as needed -->
+            </tr>
+        </thead>
+        <tbody>
+            <aura:iteration items="{!v.caseActions}" var="action">
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{!action.Case__r.CaseNumber}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{!action.Date_Time_c__c}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{!action.PlanID_Text__c}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">
+                        <aura:if isTrue="{!v.caseActions.Call_Activity__c.includes('Inquiry')}">
+                            Inquiry
+                        </aura:if>
+                    </td>
+                    <!-- Add other columns as needed -->
+                </tr>
+            </aura:iteration>
+        </tbody>
+    </table>
