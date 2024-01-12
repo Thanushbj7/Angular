@@ -75,27 +75,38 @@ I am getting the Case Id and displaying all the casesaction related to that obje
 
 
 
-	Public class CaseRelatedListApex{
-    @AuraEnabled
-    public static List<Case_Actions__c> getObject(){
-       // LIST< session__c > objsessList = new LIST< session__c >();
-        LIST< Case_Actions__c > objCaseList = new LIST< Case_Actions__c >();
-             
-        
-          //   if(sessId!=null)
-          //where session_ID__c =:sessId
-      
-           objCaseList =[SELECT  Case__r.CaseNumber,Case__r.CreatedDate,PlanID_Text__c,Call_Activity__c FROM Case_Actions__c where  Call_Activity__c IN('Inquiry','Transactions','Account Maintenance','Forms')   and Case__r.Account.SSN__c IN  ('010820241')  ];
-            //return  objCaseList;       
-           
-     
-         return  objCaseList;
-        }
-       
-        
-}
+	
         </div>
        
            </lightning:card>
     </aura:component>
 For this code put a condition that casenumber should not repeat
+
+
+
+
+
+
+
+	({
+    check : function(component, event, helper) {
+        // Existing code...
+        
+        // Initialize a set to store unique case numbers
+        var uniqueCaseNumbers = new Set();
+
+        // Iterate through the cases and add only unique case numbers
+        var cases = component.get("v.cases");
+        cases.forEach(function(caseRecord) {
+            var caseNumber = caseRecord.Case__r.CaseNumber;
+            if (!uniqueCaseNumbers.has(caseNumber)) {
+                uniqueCaseNumbers.add(caseNumber);
+            } else {
+                // Case number already exists, handle accordingly (you can skip, alert, or take another action)
+            }
+        });
+
+        // Update the component attribute with the unique cases
+        component.set("v.cases", cases);
+    }
+})
