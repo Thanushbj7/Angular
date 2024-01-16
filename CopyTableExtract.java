@@ -43,24 +43,24 @@ I am getting the Case Id and displaying all the casesaction related to that obje
                     <td style="border: 1px solid #ddd; padding: 8px;">{!caseRecord.PlanID_Text__c}</td>
                     <td style="border: 1px solid #ddd; padding: 8px;">
                         <aura:if isTrue="{!caseRecord.Call_Activity__c=='Inquiry'}">
-                            Inquiry
+                            {!caseRecord.Call_Type__c}
                         </aura:if>
                         
                     </td>
                     <td style="border: 1px solid #ddd; padding: 8px;">
                         <aura:if isTrue="{!caseRecord.Call_Activity__c=='Transactions'}">
-                            Transactions
+                            {!caseRecord.Call_Type__c}
                         </aura:if>
-                        
+                          
                     </td>
                      <td style="border: 1px solid #ddd; padding: 8px;">
                         <aura:if isTrue="{!caseRecord.Call_Activity__c=='Account Maintenance'}">
-                            Account Maintenance
+                            {!caseRecord.Call_Type__c}
                         </aura:if>
                 </td>
                     <td style="border: 1px solid #ddd; padding: 8px;">
                         <aura:if isTrue="{!caseRecord.Call_Activity__c=='Forms'}">
-                            Forms
+                            {!caseRecord.Call_Type__c}
                         </aura:if>
                 </td>
                     <!--assign case number-->
@@ -70,170 +70,7 @@ I am getting the Case Id and displaying all the casesaction related to that obje
     </table>
        
         </div>
-
-
-
-
-
-	
         </div>
        
            </lightning:card>
     </aura:component>
-For this code put a condition that casenumber should not repeat
-
-
-
-
-
-
-
-	({
-    check : function(component, event, helper) {
-        // Existing code...
-        
-        // Initialize a set to store unique case numbers
-        var uniqueCaseNumbers = new Set();
-
-        // Iterate through the cases and add only unique case numbers
-        var cases = component.get("v.cases");
-        cases.forEach(function(caseRecord) {
-            var caseNumber = caseRecord.Case__r.CaseNumber;
-            if (!uniqueCaseNumbers.has(caseNumber)) {
-                uniqueCaseNumbers.add(caseNumber);
-            } else {
-                // Case number already exists, handle accordingly (you can skip, alert, or take another action)
-            }
-        });
-
-        // Update the component attribute with the unique cases
-        component.set("v.cases", cases);
-    }
-})
-
-
-
-
-
-
-
-
-({
-    check: function(component, event, helper) {
-        console.log('inside controller');
-        helper.getCases(component, event, helper);
-
-        // Initialize a set to store unique case numbers
-        var uniqueCaseNumbers = new Set();
-
-        // Iterate through the cases and add only unique case numbers
-        var cases = component.get("v.cases");
-        cases.forEach(function(caseRecord) {
-            var caseNumber = caseRecord.Case__r.CaseNumber;
-            if (!uniqueCaseNumbers.has(caseNumber)) {
-                uniqueCaseNumbers.add(caseNumber);
-            } else {
-                // Case number already exists, handle accordingly (you can skip, alert, or take another action)
-            }
-        });
-
-        // Update the component attribute with the unique cases
-        component.set("v.cases", cases);
-    },
-
-    handleClick: function(component, event, helper) {
-        helper.navigateTorecordDetails(component, event);
-    }
-})
-
-
-
-
-
-
-({
-    getCases : function(Component,event,helper) {
-        var action= Component.get("c.getObject");
-       //var sessId = Component.get("v.sessId");
-       // action.setParams({
-        //    "sessId" :sessId
-            
-       // });
-        action.setCallback(this, function(response){
-            var state=response.getState();
-                       
-            if (Component.isValid() && state === "SUCCESS") {               
-                alert(response.getReturnValue());
-                Component.set("v.cases",response.getReturnValue());
-            }
-        });
-        $A.enqueueAction(action);
-    },
-    navigateTorecordDetails :function(Component,event,helper){
-        var navEvt = $A.get("e.force:navigateToSObject");
-        navEvt.setParams({
-            "recordId": Component.get("v.recordId")
-        });
-        navEvt.fire();
-    },
-    
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-({
-    getCases: function(component, event, helper) {
-        var action = component.get("c.getObject");
-
-        action.setCallback(this, function(response) {
-            var state = response.getState();
-
-            if (component.isValid() && state === "SUCCESS") {
-                var cases = response.getReturnValue();
-                component.set("v.cases", cases);
-                helper.handleUniqueCases(component, event, helper); // Add this line
-            }
-        });
-
-        $A.enqueueAction(action);
-    },
-
-    navigateToRecordDetails: function(component, event, helper) {
-        var navEvt = $A.get("e.force:navigateToSObject");
-        navEvt.setParams({
-            "recordId": component.get("v.recordId")
-        });
-        navEvt.fire();
-    },
-
-    handleUniqueCases: function(component, event, helper) {
-        var uniqueCaseNumbers = new Set();
-        var cases = component.get("v.cases");
-        var uniqueCases = [];
-
-        cases.forEach(function(caseRecord) {
-            var caseNumber = caseRecord.Case__r.CaseNumber;
-            if (!uniqueCaseNumbers.has(caseNumber)) {
-                uniqueCaseNumbers.add(caseNumber);
-                uniqueCases.push(caseRecord);
-            }
-        });
-
-        component.set("v.cases", uniqueCases);
-    }
-})
