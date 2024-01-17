@@ -74,3 +74,24 @@ I am getting the Case Id and displaying all the casesaction related to that obje
        
            </lightning:card>
     </aura:component>
+
+
+
+	// caseHistoryLWC.js
+import { LightningElement, wire, api } from 'lwc';
+import getCaseRelatedList from '@salesforce/apex/CaseRelatedListApex.getObject';
+
+export default class CaseHistoryLWC extends LightningElement {
+    @api recordId;
+
+    cases;
+
+    @wire(getCaseRelatedList, { caseId: '$recordId' })
+    wiredCases({ error, data }) {
+        if (data) {
+            this.cases = data;
+        } else if (error) {
+            // Handle error
+        }
+    }
+}
