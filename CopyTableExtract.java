@@ -216,3 +216,76 @@ export default class CaseHistoryLWC extends LightningElement {
 
     // ... Existing methods ...
 	}
+
+
+
+
+
+
+
+
+
+
+
+using iTextSharp.text.pdf;
+using iTextSharp.text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using iTextSharp.text.pdf.parser;
+using System.IO;
+using Xceed.Words.NET;
+ 
+namespace SampleCheck
+{
+    internal class Program
+    {
+        private const string PdfOutputPath = "pdf_output.txt";
+        private const string WordOutputPath = "word_output.txt";
+ 
+        static void Main(string[] args)
+        {
+            // Extract data from PDF
+            string pdfData = ExtractPdfData("your_pdf_file.pdf");
+            ExportDataToField(pdfData, PdfOutputPath);
+ 
+            // Extract data from Word
+            string wordData = ExtractWordData("your_word_file.docx");
+            ExportDataToField(wordData, WordOutputPath);
+        }
+ 
+        private static string ExtractPdfData(string pdfFilePath)
+        {
+            using (PdfReader pdfReader = new PdfReader(pdfFilePath))
+            {
+                using (PdfDocument pdfDocument = new PdfDocument(pdfReader))
+                {
+                    return new PdfTextExtractor(pdfDocument).GetText();
+                }
+            }
+        }
+ 
+        private static string ExtractWordData(string wordFilePath)
+        {
+            using (DocX document = DocX.Load(wordFilePath))
+            {
+                return document.Text;
+            }
+        }
+ 
+        private static void ExportDataToField(string data, string outputPath)
+        {
+            try
+            {
+                File.WriteAllText(outputPath, data);
+                Console.WriteLine($"Data exported to: {outputPath}");
+            }
+            catch (IOException e)
+            {
+                Console.WriteLine($"Error exporting data to {outputPath}: {e.Message}");
+            }
+        }
+    }
+}
