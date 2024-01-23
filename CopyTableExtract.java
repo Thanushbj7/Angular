@@ -156,3 +156,63 @@ export default class CaseHistoryLWC extends LightningElement {
 
 
 }
+
+
+
+
+
+
+// ... Existing imports ...
+
+const columns = [
+    { label: 'Case Number', fieldName: 'CaseNumber' },
+    { label: 'Date', fieldName: 'CreatedDate' },
+    { label: 'Plan Id', fieldName: 'PlanID_Text__c' },
+    { label: 'Inquiry', fieldName: 'Inquiry' },
+    { label: 'Transactions', fieldName: 'Transactions' },
+    { label: 'Account Maintenance', fieldName: 'AccountMaintenance' },
+    { label: 'Forms', fieldName: 'Forms' },
+    { label: 'Others', fieldName: 'Others' },
+];
+
+export default class CaseHistoryLWC extends LightningElement {
+    // ... Existing properties and methods ...
+
+    @wire(getObject) wiredCases(value){
+        // ... Existing wire method code ...
+
+        if (data) {
+            let tempRecords = JSON.parse(JSON.stringify(data));
+            
+            tempRecords = tempRecords.map(row => {
+                let callTypes = row.Call_Type__c ? row.Call_Type__c.split(';') : [];
+                let isFirstRow = true;
+
+                return callTypes.reduce((acc, callType) => {
+                    // The first row will have the original data, subsequent rows will be empty
+                    const newRow = {
+                        ...row,
+                        CaseNumber: isFirstRow ? row.Case__r.CaseNumber : '',
+                        CreatedDate: isFirstRow ? row.Case__r.CreatedDate : '',
+                        Inquiry: isFirstRow ? callType : '',
+                        Transactions: isFirstRow ? '' : '',
+                        AccountMaintenance: isFirstRow ? '' : '',
+                        Forms: isFirstRow ? '' : '',
+                        Others: isFirstRow ? '' : '',
+                    };
+
+                    acc.push(newRow);
+                    isFirstRow = false;
+                    return acc;
+                }, []);
+            });
+
+            this.data = tempRecords.flat();
+            console.log("tempRecords!", tempRecords);
+        }
+
+        // ... Existing error handling ...
+    }
+
+    // ... Existing methods ...
+	}
